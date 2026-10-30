@@ -5,17 +5,14 @@ Unit analisis: 27 kabupaten/kota Jawa Barat (22 final setelah eliminasi).
 
 ## Struktur
 
-- `Milestone1_ICP_Klay_Jabar.ipynb` — collection, cleaning, merging, EDA, rancangan bobot ICP
-- `Milestone2_ICP_Klay_Jabar.ipynb` — skor prioritas, K-Means, baseline, sensitivity, Top 5, rekomendasi scraping
-- `Tugas2_DS_Kelompok[NomorKelompok].docx` — laporan praktik (format akademik)
+- `notebooks/` — Milestone 1 (collection s.d. bobot) dan Milestone 2 (skor s.d. Top 5)
+- `laporan/` — laporan praktik DOCX (format akademik)
+- `output/` — CSV final (clean, scaled, eliminasi, skor, klaster, Top 5)
 - `data/` — 5 CSV sumber + 2 PDF BPS + JSON mentah Open Data Jabar
 - `assets/` — 10 gambar grafik (g1–g6 Milestone 1, g7–g10 Milestone 2)
 - `scripts/` — `extract_bps_tables.py` (ekstraksi tabel PDF BPS) dan `build_*.py`
   (generator notebook/laporan)
 - `docs-penugasan/` — brief studi kasus dan ICP dari mitra
-- `SOURCES.md` — katalog sumber + log sumber yang gagal diakses
-- CSV akar (`data_clean_merged.csv`, `data_scaled.csv`, `data_eliminated.csv`,
-  `data_skor.csv`, `data_cluster.csv`, `top5_segmen.csv`) — output siap pakai
 
 ## Reproduksi
 

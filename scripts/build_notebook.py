@@ -1,5 +1,9 @@
 """Bangun Milestone1_ICP_Klay_Jabar.ipynb via nbformat."""
+import os
 import nbformat as nbf
+
+os.makedirs("notebooks", exist_ok=True)
+os.makedirs("output", exist_ok=True)
 
 nb = nbf.v4.new_notebook()
 nb.metadata.update({"kernelspec": {"display_name": "Python 3",
@@ -28,9 +32,13 @@ from sklearn.preprocessing import MinMaxScaler
 
 os.makedirs("data", exist_ok=True)
 os.makedirs("assets", exist_ok=True)
+os.makedirs("output", exist_ok=True)
+BASE = ".." if os.path.exists(os.path.join("..", "data")) else "."
+def P(*parts):
+    return os.path.join(BASE, *parts)
 NEED = {"esamsat_2024.csv", "internet_2025.csv", "pdrb_2024.csv",
         "umkm_binaan_2023.csv", "umkm_proyeksi_2023.csv"}
-assert NEED.issubset(set(os.listdir("data"))), (
+assert NEED.issubset(set(os.listdir(P("data")))), (
     "Folder data/ belum lengkap: upload 5 file CSV (%s) ke folder data/ dulu, "
     "lalu Runtime > Run all ulang." % ", ".join(sorted(NEED)))
 
@@ -50,11 +58,11 @@ md("""## Bagian 1 — Data Collection & Understanding
 | S4b | BPS, Kesra Jabar 2025 (Susenas Mar 2025), Tabel 7.4 hlm. 118 | https://jabar.bps.go.id/id/publication/2025/11/28/5c47dbf83e4123e9a4707950/statistik-kesejahteraan-rakyat-provinsi-jawa-barat-2025.html — diakses 30 Okt 2026 | 2025 | kab/kota | % penduduk 5+ pengguna internet | Kesiapan Digital |
 Rincian + sumber yang gagal diakses tercatat di `SOURCES.md`. QRIS per kab/kota tidak dipublikasikan (BI hanya merilis level provinsi: Jabar 8,28 jt merchant Q1-2025), sehingga dipakai proksi e-Samsat (S3).""")
 
-code("""umkm = pd.read_csv("data/umkm_proyeksi_2023.csv")
-binaan = pd.read_csv("data/umkm_binaan_2023.csv")
-esamsat = pd.read_csv("data/esamsat_2024.csv")
-pdrb = pd.read_csv("data/pdrb_2024.csv")
-inet = pd.read_csv("data/internet_2025.csv")
+code("""umkm = pd.read_csv(P("data", "umkm_proyeksi_2023.csv"))
+binaan = pd.read_csv(P("data", "umkm_binaan_2023.csv"))
+esamsat = pd.read_csv(P("data", "esamsat_2024.csv"))
+pdrb = pd.read_csv(P("data", "pdrb_2024.csv"))
+inet = pd.read_csv(P("data", "internet_2025.csv"))
 for d, n in [(umkm, "umkm"), (binaan, "binaan"), (esamsat, "esamsat"),
              (pdrb, "pdrb"), (inet, "internet")]:
     print(f"{n}: shape={d.shape}")
@@ -119,7 +127,7 @@ df["esamsat_per_umkm"] = df["esamsat_nominal_2024_rp"] / df["total_umkm_2023"]
 assert len(df) == 27 and df["kode_kabupaten_kota"].nunique() == 27
 assert df.isna().sum().sum() == 0
 print("merge OK:", df.shape)
-df.to_csv("data_clean_27_unscaled.csv", index=False)
+df.to_csv(P("output", "data_clean_27_unscaled.csv"), index=False)
 """)
 
 md("""### 2.4 Disqualification filter
@@ -137,10 +145,10 @@ print(f"final: {len(keep)} wilayah, tereliminasi: {len(elim)}")
 print(elim[["nama_kabupaten_kota", "total_umkm_2023", "alasan"]].to_string(index=False))
 elim_out = elim[["kode_kabupaten_kota", "nama_kabupaten_kota",
                  "total_umkm_2023", "alasan"]]
-elim_out.to_csv("data_eliminated.csv", index=False)
+elim_out.to_csv(P("output", "data_eliminated.csv"), index=False)
 assert len(keep) >= 20, "unit final < 20"
 final = keep.drop(columns="cum_share").reset_index(drop=True)
-final.to_csv("data_clean_merged.csv", index=False)
+final.to_csv(P("output", "data_clean_merged.csv"), index=False)
 """)
 
 md("""### 2.5 Normalisasi MinMax (arah: semua makin tinggi makin baik)""")
@@ -152,7 +160,7 @@ scaled = pd.DataFrame(scaler.fit_transform(final[INDIKATOR]),
 assert ((scaled >= 0) & (scaled <= 1)).all().all()
 out = pd.concat([final[["kode_kabupaten_kota", "nama_kabupaten_kota"]],
                  scaled], axis=1)
-out.to_csv("data_scaled.csv", index=False)
+out.to_csv(P("output", "data_scaled.csv"), index=False)
 print(out.describe().to_string())
 """)
 
@@ -166,7 +174,7 @@ ax[0].set_title("Distribusi ukuran pasar per wilayah")
 ax[1].boxplot(final["total_umkm_2023"] / 1000, vert=False)
 ax[1].set_xlabel("Total UMKM 2023 (ribu unit)")
 ax[1].set_title("Boxplot ukuran pasar")
-plt.tight_layout(); plt.savefig("assets/g1_distribusi_umkm.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g1_distribusi_umkm.png")); plt.show()
 print("median:", int(final['total_umkm_2023'].median()),
       "| min:", final.sort_values('total_umkm_2023').iloc[0]['nama_kabupaten_kota'],
       "| max:", final.sort_values('total_umkm_2023').iloc[-1]['nama_kabupaten_kota'])
@@ -180,7 +188,7 @@ fig, ax = plt.subplots(figsize=(8, 7))
 s.plot.barh(ax=ax, color=sns.color_palette(PALET, len(s)))
 ax.set_xlabel("Share UMKM binaan pada sektor ICP Ritel/F&B/Jasa (%)")
 ax.set_title("Kepadatan sektor target ICP per wilayah")
-plt.tight_layout(); plt.savefig("assets/g2_kepadatan_icp.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g2_kepadatan_icp.png")); plt.show()
 """)
 md("""Insight G2 — Kepadatan ICP bervariasi nyata (57,5% Kab. Bandung Barat s.d. 91,3% Kab. Kuningan).
 Kuningan, Kota Tasikmalaya, dan Ciamis paling "murni" ritel/jasa harian, sementara Bandung Barat paling
@@ -198,7 +206,7 @@ ax.set_xlabel("Penduduk 5+ pengguna internet 2025 (%)")
 ax.set_ylabel("Total UMKM 2023 (ribu unit)")
 ax.set_title("Internet vs ukuran pasar (warna = PDRB/kapita)")
 plt.colorbar(ax.collections[0], ax=ax, label="PDRB/kapita (ribu Rp)")
-plt.tight_layout(); plt.savefig("assets/g3_internet_vs_pasar.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g3_internet_vs_pasar.png")); plt.show()
 r = final["internet_pct_2025"].corr(final["total_umkm_2023"])
 print(f"korelasi Pearson: {r:.2f}")
 """)
@@ -219,7 +227,7 @@ ax.set_xlabel("PDRB per kapita 2024 (ribu Rp)")
 ax.set_ylabel("Nominal e-Samsat per UMKM 2024 (juta Rp)")
 ax.set_title("Daya beli vs adopsi pembayaran digital (warna = internet %)")
 plt.colorbar(ax.collections[0], ax=ax, label="Internet (%)")
-plt.tight_layout(); plt.savefig("assets/g4_pdrb_vs_adopsi.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g4_pdrb_vs_adopsi.png")); plt.show()
 r = final["pdrb_per_kapita_2024_ribu_rp"].corr(final["esamsat_per_umkm"])
 print(f"korelasi Pearson: {r:.2f}")
 """)
@@ -241,7 +249,7 @@ fig, ax = plt.subplots(figsize=(9, 6))
 sns.heatmap(mat * 100, annot=True, fmt=".0f", cmap=PALET, ax=ax, cbar_kws={"label": "%"})
 ax.set_title("Komposisi sektor: 12 wilayah terbesar")
 ax.set_ylabel(""); ax.set_xlabel("")
-plt.tight_layout(); plt.savefig("assets/g5_heatmap_sektor.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g5_heatmap_sektor.png")); plt.show()
 """)
 md("""Insight G5 — Ritel (terutama FASHION) mendominasi UMKM binaan di semua 12 wilayah terbesar (59–79%),
 tertinggi di Kab. Bandung 79%. Kolom F&B nol di seluruh wilayah: program binaan Diskuk 2023 tidak menyentuh
@@ -256,7 +264,7 @@ code("""num = final[INDIKATOR].rename(columns={
 fig, ax = plt.subplots(figsize=(6.5, 5.5))
 sns.heatmap(num.corr(), annot=True, fmt=".2f", cmap=PALET, vmin=-1, vmax=1, ax=ax)
 ax.set_title("Korelasi antar indikator ICP")
-plt.tight_layout(); plt.savefig("assets/g6_corr_matrix.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g6_corr_matrix.png")); plt.show()
 """)
 md("""Insight G6 — Tidak ada korelasi > 0,6 antar indikator: kelima indikator membawa sinyal berbeda
 (pasar vs daya beli vs digital vs komposisi sektor). Ini kabar baik untuk pembobotan: tidak ada duplikasi
@@ -286,5 +294,5 @@ proksi e-Samsat bukan QRIS; PDRB 2024 sangat sementara; Susenas memakai sampel.
 Langkah berikut (Milestone 2, tidak dikerjakan di sini): K-Means dan Elbow/Silhouette,
 skor indeks final, Top 5 segmen, sensitivity check, rekomendasi scraping.""")
 
-nbf.write(nb, "Milestone1_ICP_Klay_Jabar.ipynb")
+nbf.write(nb, "notebooks/Milestone1_ICP_Klay_Jabar.ipynb")
 print("notebook selesai")

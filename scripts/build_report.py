@@ -1,10 +1,12 @@
 """Bangun laporan praktik Milestone 1 — format akademik TNR 12/14, margin 4-4-3-3, A4."""
+import os
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 
 BLACK = RGBColor(0, 0, 0)
+os.makedirs("laporan", exist_ok=True)
 doc = Document()
 
 sec = doc.sections[0]
@@ -331,9 +333,9 @@ for x in ["Badan Pusat Statistik Provinsi Jawa Barat. 2025. Provinsi Jawa Barat 
 bab("LAMPIRAN")
 sub("Lampiran 1. Akses Notebook dan Berkas")
 p("Link Colab (atur akses Anyone with the link can view): [ISI LINK COLAB]", indent=False)
-p("Berkas notebook: Milestone1_ICP_Klay_Jabar.ipynb", indent=False)
-p("Berkas data: data_clean_merged.csv, data_scaled.csv, data_eliminated.csv, folder data/ (5 CSV sumber), "
-  "folder assets/ (6 gambar), scripts/extract_bps_tables.py, SOURCES.md.", indent=False)
+p("Berkas notebook: notebooks/Milestone1_ICP_Klay_Jabar.ipynb dan notebooks/Milestone2_ICP_Klay_Jabar.ipynb", indent=False)
+p("Berkas data: output/ (CSV final), data/ (5 CSV sumber), "
+  "assets/ (10 gambar), scripts/extract_bps_tables.py, SOURCES.md.", indent=False)
 
-doc.save("Tugas2_DS_Kelompok[NomorKelompok].docx")
+doc.save("laporan/Tugas2_DS_Kelompok[NomorKelompok].docx")
 print("laporan tersimpan")

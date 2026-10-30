@@ -1,5 +1,9 @@
 """Bangun Milestone2_ICP_Klay_Jabar.ipynb via nbformat. Lanjutan Milestone 1."""
+import os
 import nbformat as nbf
+
+os.makedirs("notebooks", exist_ok=True)
+os.makedirs("output", exist_ok=True)
 
 nb = nbf.v4.new_notebook()
 nb.metadata.update({"kernelspec": {"display_name": "Python 3",
@@ -27,13 +31,17 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 os.makedirs("assets", exist_ok=True)
+os.makedirs("output", exist_ok=True)
+BASE = ".." if os.path.exists(os.path.join("..", "data")) else "."
+def P(*parts):
+    return os.path.join(BASE, *parts)
 RANDOM_STATE = 42
 plt.rcParams.update({"figure.dpi": 110, "font.size": 10})
 PALET = "viridis"
 
-scaled = pd.read_csv("data_scaled.csv")
-merged = pd.read_csv("data_clean_merged.csv")
-binaan = pd.read_csv("data/umkm_binaan_2023.csv")
+scaled = pd.read_csv(P("output", "data_scaled.csv"))
+merged = pd.read_csv(P("output", "data_clean_merged.csv"))
+binaan = pd.read_csv(P("data", "umkm_binaan_2023.csv"))
 assert len(scaled) == len(merged) == 22
 FEAT = [c for c in scaled.columns if c.endswith("_scaled")]
 print("fitur:", FEAT)
@@ -53,7 +61,7 @@ hasil["skor_prioritas"] = skor
 hasil = hasil.sort_values("skor_prioritas", ascending=False).reset_index(drop=True)
 hasil["ranking"] = hasil.index + 1
 print(hasil[["ranking", "nama_kabupaten_kota", "skor_prioritas"]].head(8).to_string(index=False))
-hasil.to_csv("data_skor.csv", index=False)
+hasil.to_csv(P("output", "data_skor.csv"), index=False)
 assert hasil["skor_prioritas"].between(0, 1).all()
 """)
 
@@ -74,7 +82,7 @@ ax[1].bar(ks, sil, color=sns.color_palette(PALET, len(ks)))
 ax[1].set_xlabel("k"); ax[1].set_ylabel("Silhouette"); ax[1].set_title("Silhouette")
 for i, v in enumerate(sil):
     ax[1].text(ks[i], v + 0.01, f"{v:.3f}", ha="center", fontsize=9)
-plt.tight_layout(); plt.savefig("assets/g7_elbow_silhouette.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g7_elbow_silhouette.png")); plt.show()
 K = ks[int(np.argmax(sil))]
 print("k terpilih (silhouette maks):", K)
 assert K == 3
@@ -102,7 +110,7 @@ for c in range(K):
           hasil[hasil.cluster == c].sort_values("skor_prioritas", ascending=False)
           ["nama_kabupaten_kota"].tolist())
 hasil[["kode_kabupaten_kota", "nama_kabupaten_kota", "cluster", "tipe_wilayah"]].to_csv(
-    "data_cluster.csv", index=False)
+    P("output", "data_cluster.csv"), index=False)
 """)
 
 code("""fig, ax = plt.subplots(figsize=(7, 5))
@@ -117,7 +125,7 @@ ax.set_xlabel("Internet 2025 (%)")
 ax.set_ylabel("e-Samsat per UMKM 2024 (juta Rp)")
 ax.set_title("Peta klaster wilayah (ukuran = total UMKM)")
 plt.colorbar(sc, ax=ax, label="Cluster")
-plt.tight_layout(); plt.savefig("assets/g8_peta_cluster.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g8_peta_cluster.png")); plt.show()
 """)
 md("""Insight klaster — K-Means (k=3, silhouette 0,393, terbaik di 2..6) menemukan tiga tipe: "Digital siap
 adopsi" (internet + adopsi tertinggi, skor rerata 0,57: Kota Bandung, Depok, Bogor kota, plus Sukabumi yang
@@ -149,7 +157,7 @@ for _, r in hasil.iterrows():
 ax.plot([0, 23], [0, 23], "r--", lw=1)
 ax.set_xlabel("Ranking UMKM-only"); ax.set_ylabel("Ranking skor ICP")
 ax.set_title(f"Baseline vs skor (rho={rho:.2f})")
-plt.tight_layout(); plt.savefig("assets/g9_baseline.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g9_baseline.png")); plt.show()
 """)
 md("""Insight baseline — Korelasi 0,52 (moderat): skor ICP mengubah urutan secara material. Kota Depok dan
 Kota Bekasi masuk Top 5 berkat digital/adopsi meski volumenya bukan terbesar; Kab. Garut dan Kab. Sukabumi
@@ -159,8 +167,8 @@ akan mengarahkan SDR ke pasar besar yang belum siap digital.""")
 code("""SKEY = {"pasar": "total_umkm_2023_scaled", "sektor": "kepadatan_icp_scaled",
         "digital": "internet_pct_2025_scaled", "adopsi": "esamsat_per_umkm_scaled",
         "ekonomi": "pdrb_per_kapita_2024_ribu_rp_scaled"}
-BASE = {"pasar": 30, "sektor": 25, "digital": 20, "adopsi": 15, "ekonomi": 10}
-SKEN = {"Basis (30/25/20/15/10)": dict(BASE),
+W0 = {"pasar": 30, "sektor": 25, "digital": 20, "adopsi": 15, "ekonomi": 10}
+SKEN = {"Basis (30/25/20/15/10)": dict(W0),
         "Pasar +5 / Adopsi -5": {"pasar": 35, "sektor": 25, "digital": 20, "adopsi": 10, "ekonomi": 10},
         "Digital +5 / Ekonomi -5": {"pasar": 30, "sektor": 25, "digital": 25, "adopsi": 15, "ekonomi": 5},
         "Sektor +5 / Pasar -5": {"pasar": 25, "sektor": 30, "digital": 20, "adopsi": 15, "ekonomi": 10}}
@@ -180,7 +188,7 @@ ax.set_xlim(0, 5.5); ax.set_xlabel("Irisan Top 5 vs basis")
 ax.set_title("Stabilitas Top 5 terhadap perubahan bobot (+-5pp)")
 for i, v in enumerate(sens["overlap_top5"]):
     ax.text(v + 0.05, i, f"{v}/5", va="center")
-plt.tight_layout(); plt.savefig("assets/g10_sensitivitas.png"); plt.show()
+plt.tight_layout(); plt.savefig(P("assets", "g10_sensitivitas.png")); plt.show()
 """)
 md("""Insight sensitivitas — Top 5 identik 5/5 pada seluruh skenario +-5pp: pembobotan sangat robust, Kota Bandung
 selalu peringkat 1 dan komposisi lima besar tidak berubah. Kesimpulan SDR: alokasi effort ke 5 besar aman
@@ -209,7 +217,7 @@ for _, r in top5.iterrows():
                            f"tipe {r['tipe_wilayah']}; share ICP {g.sum()/grup.loc[w_].sum():.0%}")})
 top5df = pd.DataFrame(seg, index=range(1, 6))
 print(top5df.to_string())
-top5df.to_csv("top5_segmen.csv", index=False)
+top5df.to_csv(P("output", "top5_segmen.csv"), index=False)
 """)
 
 md("""## 5. Rekomendasi sumber scraping (cek robots.txt + ToS, 30 Okt 2026)
@@ -251,5 +259,5 @@ memakai bobot asumtif (uji +-5pp stabil); komposisi F&B tidak tertangkap binaan;
 Roadmap: operasionalkan Top 5 via Places API, bangun dashboard monitoring skor per kuartal, dan ulangi K-Means
 saat data 2024-2025 terbit.""")
 
-nbf.write(nb, "Milestone2_ICP_Klay_Jabar.ipynb")
+nbf.write(nb, "notebooks/Milestone2_ICP_Klay_Jabar.ipynb")
 print("notebook2 selesai")
