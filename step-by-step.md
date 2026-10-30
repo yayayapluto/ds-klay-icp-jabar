@@ -1,8 +1,8 @@
-# Guidebook Manual — Milestone 1 & 2 (Klay / Skalar Solutions)
+# Guidebook Manual: Milestone 1 dan 2 (Klay / Skalar Solutions)
 
 Panduan langkah-demi-langkah mengerjakan ulang seluruh pipeline secara manual di notebook baru.
 Setiap langkah berisi **tujuan**, **instruksi**, dan **cek hasil**. Kode disembunyikan di dalam
-accordion — klik untuk membuka, salin ke satu sel notebook, jalankan, cocokkan dengan hasil yang diharapkan.
+accordion. Klik untuk membuka, salin ke satu sel notebook, jalankan, lalu cocokkan dengan hasil yang diharapkan.
 
 Struktur folder yang dipakai:
 
@@ -14,11 +14,11 @@ Struktur folder yang dipakai:
 ```
 
 > Jalankan semua sel berurutan dari atas. Kernel boleh dimulai dengan working directory
-> repo root ATAU folder `notebooks/` — blok Setup di Langkah 0 mendeteksi keduanya otomatis.
+> repo root ATAU folder `notebooks/`, karena blok Setup di Langkah 0 mendeteksi keduanya otomatis.
 
 ---
 
-## Langkah 0 — Setup & path adaptif
+## Langkah 0: Setup dan path adaptif
 
 **Tujuan:** impor pustaka dan buat helper path `P()` agar notebook jalan dari mana saja.
 
@@ -28,7 +28,7 @@ Struktur folder yang dipakai:
 2. Sel pertama: salin kode accordion, jalankan. Pastikan tidak error dan folder `output/` + `assets/` terbentuk.
 
 <details>
-<summary><b>Kode — Setup</b></summary>
+<summary><b>Kode: Setup</b></summary>
 
 ```python
 import os
@@ -60,24 +60,24 @@ assert NEED.issubset(set(os.listdir(P("data")))), "Lengkapi 5 CSV di folder data
 
 ## MILESTONE 1
 
-### Langkah 1 — Unduh data Open Data Jabar (3 dataset, via API)
+### Langkah 1: Unduh data Open Data Jabar (3 dataset, via API)
 
-**Tujuan:** ambil UMKM proyeksi, UMKM binaan, dan e-Samsat langsung dari API resmi (portal web-nya
-kadang 502/WAF, API-nya terbuka).
+**Tujuan:** ambil UMKM proyeksi, UMKM binaan, dan e-Samsat langsung dari API resmi. Portal web-nya
+kadang 502/WAF, sedangkan API-nya terbuka.
 
 **Instruksi:**
 
-1. Dataset 1 (Diskuk, proyeksi per kab/kota x kategori 2017–2023): endpoint
+1. Dataset 1 (Diskuk, proyeksi per kab/kota x kategori 2017 sampai 2023): endpoint
    `od_17371_proyeksi_jml_ush_mikro_kecil_menengah_umkm__kabupa_v2`, paginasi `limit=1000`
    (`skip=0` lalu `skip=1000`) sampai total 1.890 baris.
-2. Dataset 2 (Diskuk, binaan per kab/kota x jenis usaha 2019–2023): endpoint
+2. Dataset 2 (Diskuk, binaan per kab/kota x jenis usaha 2019 sampai 2023): endpoint
    `od_17367_jml_ush_mikro_kecil_menengah_umkm_binaan__jenis_us_v2`, paginasi sampai 2.025 baris.
-3. Dataset 3 (Bapenda, e-Samsat 2014–2025): endpoint
+3. Dataset 3 (Bapenda, e-Samsat 2014 sampai 2025): endpoint
    `od_15834_jml_pembayaran_pajak_kndrn_brmtr_melalui_e_samsat__v6`, paginasi sampai 2.005 baris.
 4. Simpan respons JSON, filter tahun yang dipakai (2023 / 2023 / 2024), tulis ke `data/*.csv`.
 
 <details>
-<summary><b>Kode — Unduh + tulis CSV ODJ</b></summary>
+<summary><b>Kode: Unduh + tulis CSV ODJ</b></summary>
 
 ```python
 import json, urllib.request
@@ -118,21 +118,21 @@ print("OK:", len(du), len(db), len(de))
 
 **Cek:** `umkm_proyeksi_2023.csv` 27 baris, `umkm_binaan_2023.csv` 405 baris, `esamsat_2024.csv` 27 baris.
 
-### Langkah 2 — Unduh 2 PDF BPS + ekstrak tabelnya
+### Langkah 2: Unduh 2 PDF BPS + ekstrak tabelnya
 
 **Tujuan:** PDRB per kapita 2024 (Dalam Angka 2025, Tabel 13.2.5 hlm. 799) dan internet 2025
 (Kesra 2025, Tabel 7.4 hlm. 118).
 
 **Instruksi:**
 
-1. Unduh dari halaman publikasi BPS (tombol *Unduh Publikasi*; token bertanda waktu — ambil baru
-   tiap sesi).
+1. Unduh dari halaman publikasi BPS (tombol *Unduh Publikasi*; token bertanda waktu,
+   ambil baru tiap sesi).
 2. Ekstrak dengan `pdfplumber` + tangani artefak OCR (huruf menempel angka, mis. `Bogort`,
    `25o.138`, `9/1.873`) via alias dan pembersih regex.
-3. Wajib: `assert` 27 baris + spot-check (Kota Bandung ±147.081; Depok internet ±93,24).
+3. Wajib: `assert` 27 baris + spot-check (Kota Bandung sekitar 147.081; Depok internet sekitar 93,24).
 
 <details>
-<summary><b>Kode — Ekstrak PDF BPS</b></summary>
+<summary><b>Kode: Ekstrak PDF BPS</b></summary>
 
 ```python
 import re, pdfplumber
@@ -191,15 +191,15 @@ print("PDF OK")
 
 **Cek:** `pdrb_2024.csv` dan `internet_2025.csv` masing-masing 27 baris, tanpa missing.
 
-### Langkah 3 — Load + cleaning + validasi kunci
+### Langkah 3: Load + cleaning + validasi kunci
 
 **Tujuan:** 0 missing, 0 duplikat, 27 kode BPS selaras di semua tabel.
 
-**Instruksi:** load 5 CSV, cek shape/dtypes/head, cek missing-duplikat, iris outlier IQR (harusnya
-tidak ada yang dibuang — skew adalah sifat data, bukan kesalahan).
+**Instruksi:** muat 5 CSV lalu periksa shape, dtypes, dan head. Setelah itu cek missing,
+duplikat, dan iris outlier IQR (catatan: tidak ada yang perlu dibuang, sebab skew adalah sifat data, bukan kesalahan).
 
 <details>
-<summary><b>Kode — Load & cleaning</b></summary>
+<summary><b>Kode: Load dan cleaning</b></summary>
 
 ```python
 umkm = pd.read_csv(P("data", "umkm_proyeksi_2023.csv"))
@@ -223,17 +223,17 @@ print("outlier IQR:", umkm[umkm.total_umkm_2023 > q3 + 1.5 * (q3 - q1)]
 
 </details>
 
-### Langkah 4 — Pemetaan kategori ke 3 kelompok ICP
+### Langkah 4: Pemetaan kategori ke 3 kelompok ICP
 
-**Tujuan:** hitung share sektor target per wilayah dari data binaan (komposisi proyeksi S1
-identik antar wilayah — std < 1e-5 — jadi tidak informatif).
+**Target langkah ini:** hitung share sektor target per wilayah dari data binaan. Komposisi proyeksi S1
+seragam antar wilayah (std di bawah 1e-5), jadi tidak informatif.
 
 **Aturan mapping:** Ritel = FASHION, KONVEKSI · F&B = KULINER, MAKANAN, MINUMAN ·
 Jasa = JASA · sisanya (MEBEL, INDUSTRI, AGRIBISNIS, AKSESORIS, BATIK, BORDIR, CRAFT,
 DEKORASI, OBAT-OBATAN) = Di luar ICP. Catat: pada binaan 2023 F&B = 0 (bias program).
 
 <details>
-<summary><b>Kode — Kepadatan ICP</b></summary>
+<summary><b>Kode: Kepadatan ICP</b></summary>
 
 ```python
 RITEL, FNB, JASA = ["FASHION", "KONVEKSI"], ["KULINER", "MAKANAN", "MINUMAN"], ["JASA"]
@@ -248,17 +248,17 @@ print(share["kepadatan_icp"].describe().to_string())
 
 </details>
 
-**Cek:** rentang ±0,575–0,913. Jika std ≈ 0, indikator tak layak skor (lihat jebakan di Langkah 8).
+**Cek:** rentang sekitar 0,575 sampai 0,913. Jika std mendekati nol, indikator tak layak skor (lihat jebakan di Langkah 8).
 
-### Langkah 5 — Merging
+### Langkah 5: Merging
 
-**Tujuan:** satu tabel 27 baris, tanpa baris hilang/duplikat/missing.
+**Yang ingin dicapai:** satu tabel 27 baris, tanpa baris hilang/duplikat/missing.
 
-**Instruksi:** left join berurutan dengan kunci `kode_kabupaten_kota`; e-Samsat sudah diagregat
-di Langkah 1; buat `esamsat_per_umkm = nominal / total_umkm`.
+**Instruksi:** gabungkan dengan left join berurutan memakai kunci `kode_kabupaten_kota`.
+e-Samsat sudah diagregat di Langkah 1, lalu buat `esamsat_per_umkm = nominal / total_umkm`.
 
 <details>
-<summary><b>Kode — Merge</b></summary>
+<summary><b>Kode: Merge</b></summary>
 
 ```python
 df = (umkm.merge(share, on=["kode_kabupaten_kota", "nama_kabupaten_kota"])
@@ -273,13 +273,13 @@ df.to_csv(P("output", "data_clean_27_unscaled.csv"), index=False)
 
 </details>
 
-### Langkah 6 — Filter penggugur (eliminasi)
+### Langkah 6: Filter penggugur (eliminasi)
 
-**Tujuan:** sisakan wilayah yang secara kumulatif mencakup ≥95% total UMKM; sisanya catat di
-`data_eliminated.csv` beserta alasan. Harus tersisa ≥20 wilayah dan tanpa imputasi tebakan.
+**Tujuan:** sisakan wilayah yang secara kumulatif mencakup minimal 95% total UMKM. Sisanya
+catat di `data_eliminated.csv` beserta alasannya. Syaratnya: tersisa minimal 20 wilayah dan tanpa imputasi tebakan.
 
 <details>
-<summary><b>Kode — Eliminasi</b></summary>
+<summary><b>Kode: Eliminasi</b></summary>
 
 ```python
 df = df.sort_values("total_umkm_2023", ascending=False).reset_index(drop=True)
@@ -299,14 +299,15 @@ print(f"final {len(final)} | tereliminasi {len(elim)}")
 
 </details>
 
-**Cek:** final 22, tereliminasi 5 (Banjar, Sukabumi kota, Cirebon kota, Cimahi, Pangandaran ≈ 4,8%).
+**Cek:** final 22, tereliminasi 5 (Banjar, Sukabumi kota, Cirebon kota, Cimahi, Pangandaran, yang
+bersama-sama hanya 4,8% total).
 
-### Langkah 7 — Normalisasi MinMax
+### Langkah 7: Normalisasi MinMax
 
-**Tujuan:** 5 indikator ke 0–1, semua arah positif. Hanya `MinMaxScaler` dari sklearn.
+**Tujuan:** 5 indikator ke rentang 0 sampai 1, semua arah positif. Hanya `MinMaxScaler` dari sklearn.
 
 <details>
-<summary><b>Kode — Scaling</b></summary>
+<summary><b>Kode: Scaling</b></summary>
 
 ```python
 INDIKATOR = ["total_umkm_2023", "kepadatan_icp", "internet_pct_2025",
@@ -320,18 +321,18 @@ pd.concat([final[["kode_kabupaten_kota", "nama_kabupaten_kota"]], scaled],
 
 </details>
 
-### Langkah 8 — EDA (6 grafik + insight SDR)
+### Langkah 8: EDA (6 grafik + insight SDR)
 
-**Tujuan:** minimal 5 grafik (univariat, bivariat, multivariat), tiap grafik diikuti 2–4 kalimat
-insight bisnis. Pola acuan yang harus muncul: distribusi right-skew; kepadatan 57,5–91,3%;
-korelasi internet–pasar ≈ −0,07; korelasi adopsi–PDRB ≈ +0,42; ritel fashion dominan di heatmap;
-tidak ada korelasi antar-indikator > 0,6.
+**Tujuan:** buat minimal 5 grafik (univariat, bivariat, multivariat). Tiap grafik diikuti 2-4 kalimat
+insight bisnis. Pola acuan yang harus muncul: distribusi right-skew; kepadatan 57,5 sampai 91,3 persen;
+korelasi internet-pasar sekitar -0,07; korelasi adopsi-PDRB sekitar +0,42; ritel fashion dominan di heatmap;
+tidak ada korelasi antar-indikator di atas 0,6.
 
-**Jebakan umum:** (a) indikator konstan (std ≈ 0) membuat MinMax gagal — cek `describe()` dulu;
+**Jebakan umum:** (a) indikator konstan (std mendekati nol) membuat MinMax gagal, jadi cek `describe()` dulu;
 (b) heatmap F&B nol adalah fakta data (bias program), bukan bug kode.
 
 <details>
-<summary><b>Kode — 6 grafik</b></summary>
+<summary><b>Kode: 6 grafik</b></summary>
 
 ```python
 # G1 univariat: histogram + boxplot total UMKM
@@ -402,10 +403,10 @@ plt.tight_layout(); plt.savefig(P("assets", "g6_corr_matrix.png")); plt.show()
 
 </details>
 
-### Langkah 9 — Tabel bobot ICP (akhir Milestone 1)
+### Langkah 9: Tabel bobot ICP (akhir Milestone 1)
 
-**Tujuan:** 5 komponen, total tepat 100, tiap bobot beralasan ICP. Berhenti di sini untuk
-Milestone 1 — JANGAN lanjut ke skor/K-Means/Top 5.
+**Target langkah ini:** tetapkan 5 komponen dengan total tepat 100, tiap bobot beralasan ICP. Milestone 1
+berhenti di sini, jadi JANGAN lanjut ke skor/K-Means/Top 5.
 
 | Komponen | Indikator | Bobot | Justifikasi |
 |---|---|---|---|
@@ -416,12 +417,12 @@ Milestone 1 — JANGAN lanjut ke skor/K-Means/Top 5.
 | Aktivitas Ekonomi | PDRB/kapita 2024 | 10% | Daya beli langganan |
 
 <details>
-<summary><b>Kode — Verifikasi bobot</b></summary>
+<summary><b>Kode: Verifikasi bobot</b></summary>
 
 ```python
 BOBOT = {"pasar": 30, "sektor": 25, "digital": 20, "adopsi": 15, "ekonomi": 10}
 assert sum(BOBOT.values()) == 100
-print("Total bobot 100% — OK")
+print("Total bobot 100%: OK")
 ```
 
 </details>
@@ -432,12 +433,12 @@ print("Total bobot 100% — OK")
 
 Prasyarat: `output/data_scaled.csv` dan `output/data_clean_merged.csv` dari Milestone 1.
 
-### Langkah 10 — Skor prioritas
+### Langkah 10: Skor prioritas
 
-**Tujuan:** skor = jumlah bobot × fitur scaled (0–1). Peringkat 1 acuan: Kota Bandung ±0,738.
+**Tujuan:** hitung skor sebagai jumlah bobot dikali fitur scaled (0-1). Acuan peringkat 1: Kota Bandung sekitar 0,738.
 
 <details>
-<summary><b>Kode — Skor</b></summary>
+<summary><b>Kode: Skor</b></summary>
 
 ```python
 BOBOT = {"total_umkm_2023_scaled": 0.30, "kepadatan_icp_scaled": 0.25,
@@ -453,16 +454,16 @@ hasil.to_csv(P("output", "data_skor.csv"), index=False)
 
 </details>
 
-### Langkah 11 — K-Means (k via silhouette) + nama tipe data-driven
+### Langkah 11: K-Means (k via silhouette) + nama tipe data-driven
 
-**Tujuan:** k = argmax silhouette pada 2..6 (hasil: k=3, ±0,393). Penamaan klaster WAJIB dari
-rata-rata profil, bukan nomor label (label K-Means arbitrer dan bisa bertukar antar run).
+**Tujuan:** k diambil dari argmax silhouette pada 2 sampai 6 (hasilnya k=3, sekitar 0,393). Nama klaster WAJIB turun dari
+rata-rata profil, bukan dari nomor label (nomor label K-Means arbitrer dan bisa bertukar antar run).
 
 **Aturan nama:** rata-rata internet+adopsi tertinggi → "Digital siap adopsi"; skor rerata
 terendah → "Pengembangan lanjutan"; sisanya → "Pasar volume utama".
 
 <details>
-<summary><b>Kode — K-Means</b></summary>
+<summary><b>Kode: K-Means</b></summary>
 
 ```python
 ks, inertia, sil = list(range(2, 7)), [], []
@@ -486,16 +487,16 @@ hasil[["kode_kabupaten_kota", "nama_kabupaten_kota", "cluster", "tipe_wilayah"]]
 
 </details>
 
-### Langkah 12 — Baseline vs sensitivitas
+### Langkah 12: Baseline vs sensitivitas
 
-**Tujuan:** buktikan skor mengubah ranking secara material (Spearman ≈ 0,52; overlap Top 5 = 3/5:
-Depok + Bekasi kota masuk, Garut + Sukabumi keluar) dan robust (overlap 5/5 di semua skenario ±5pp).
+**Yang ingin dicapai:** buktikan skor mengubah ranking secara material (Spearman sekitar 0,52; overlap Top 5 = 3/5:
+Depok dan Bekasi kota masuk, Garut dan Sukabumi keluar) dan robust (overlap 5/5 di semua skenario +-5pp).
 
-**Jebakan:** JANGAN pakai `hasil.iloc[argsort]` setelah `sort_values` — posisi X (urutan final)
+**Jebakan:** JANGAN pakai `hasil.iloc[argsort]` setelah `sort_values`, sebab posisi X (urutan final)
 berbeda dengan posisi hasil terurut. Selalu index ke frame berurutan-final (`merged`).
 
 <details>
-<summary><b>Kode — Baseline & sensitivity</b></summary>
+<summary><b>Kode: Baseline dan sensitivity</b></summary>
 
 ```python
 hasil["rank_umkm"] = hasil["total_umkm_2023"].rank(ascending=False).astype(int)
@@ -519,7 +520,7 @@ for nama, w in SKEN.items():
 
 </details>
 
-### Langkah 13 — Top 5 segmen + cek scraping
+### Langkah 13: Top 5 segmen + cek scraping
 
 **Tujuan:** tabel (Sektor dominan binaan × Wilayah × Skor × Estimasi UMKM × Alasan) dan tabel
 rekomendasi scraping berbasis robots.txt aktual + ToS.
@@ -529,7 +530,7 @@ Shopee, GoFood, Grab), catat status (Diizinkan/Dibatasi/Tidak ada), baca ToS, si
 scraping halaman dilarang → pakai API resmi (Places API, Seller API) atau jalur kemitraan.
 
 <details>
-<summary><b>Kode — Top 5 & cek robots.txt</b></summary>
+<summary><b>Kode: Top 5 dan cek robots.txt</b></summary>
 
 ```python
 grup = (binaan.assign(g=np.select(
@@ -563,20 +564,20 @@ for url in ["https://www.google.com/robots.txt", "https://www.tokopedia.com/robo
 
 ---
 
-## Lampiran A — Upload ke Google Colab
+## Lampiran A: Upload ke Google Colab
 
 1. Di Colab: panel Files > New folder > `data`; upload 5 CSV sumber ke dalamnya.
 2. Upload notebook via File > Upload notebook.
 3. Runtime > Run all. Jika `AssertionError` folder data, perbaiki letak file lalu ulangi.
 4. Share > Anyone with the link > salin link ke laporan.
 
-## Lampiran B — Troubleshooting
+## Lampiran B: Troubleshooting
 
 | Gejala | Penyebab | Perbaikan |
 |---|---|---|
-| `AssertionError` 27 baris (PDRB/internet) | Artefak OCR / halaman PDF beda | Sesuaikan alias + indeks halaman, cek manual 1–2 baris |
+| `AssertionError` 27 baris (PDRB/internet) | Artefak OCR / halaman PDF beda | Sesuaikan alias dan indeks halaman, cek manual 1-2 baris |
 | `MinMaxScaler` error / kolom konstan | Indikator std ≈ 0 (template proyeksi) | Ganti sumber komposisi (pakai binaan), jangan pakai kolom itu |
 | Label klaster "berubah" antar run | Nama hardcode per nomor label | Namai dari rata-rata profil tiap run |
 | Overlap sensitivitas aneh (mis. basis ≠ 5/5) | `argsort` di frame terurut-skor | Index ke frame urutan-final (`merged`) |
 | Portal ODJ 502 / data.go.id error | WAF / aplikasi rusak | Pakai API backend langsung; arsip Wayback; catat di SOURCES |
-| Dataset Kaggle "UMKM" sintetis | Dinyatakan sintetis oleh pemilik | Tolak — melanggar aturan anti-karangan |
+| Dataset Kaggle "UMKM" sintetis | Dinyatakan sintetis oleh pemilik | Tolak, sebab melanggar aturan anti-karangan |
